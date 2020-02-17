@@ -1,0 +1,182 @@
+import { yellow, highlight } from '@mdx-deck/themes'
+
+export const theme = {
+  ...yellow,
+  ...highlight
+}
+
+import Divider from './divider'
+
+# AMD? CJS? ESM?
+## Module Systems in JavaScript
+
+---
+
+## Module system?
+
+A system where you can import into the current "module" exported code from another "module"
+
+- Often, this "module" is refers to a file, but not necessarily always
+- The scope from context A does not affect the scope from context B
+- The context could be third-party code, but also is first party code
+- So normal in other languages that you might not have considered it a "feature"
+
+---
+
+## In the beginning
+
+- JavaScript was intended as a scripting language to add interactivity to web pages
+- It was not intended to have complex dependencies that our applications have
+- Because of this it didn't have any module system for a long time
+  - Something that is taken for granted in other languages
+
+---
+
+## People started inventing their own
+
+The simplest thing to do is to wrap everything in an "immediately invoked function expression" (IIFE)
+
+```js
+(function() {
+  // ... some code here
+})()
+```
+
+Works ok, but...
+
+- Difficult to reference code from another module/file
+- No interoperability
+
+---
+
+There were several competing implementations of a generic module system for JS
+
+We'll look at a couple of the most widely adopted ones
+
+---
+
+## Asynchronous Module Definition (AMD)
+
+[Spec](https://github.com/amdjs/amdjs-api)
+
+---
+
+```js
+define(
+  ['path/to/moduleA', 'path/to/moduleB'],
+  function(importedValueFromModuleA, importValueFromModuleB) {
+    // do something with importedValueFromModuleA/importedValueFromModuleB
+    return exportedValue
+  }
+)
+```
+
+You might recognise this from the frontend!
+
+---
+
+- Modules can be asynchronously loaded
+  - This is only useful for browsers, so it is not supported by CJS/Node
+
+- Not widely used any more, mostly because of the lack of Node support
+
+---
+
+## CommonJS (CJS)
+
+[Spec](http://wiki.commonjs.org/wiki/Modules/1.1)
+
+---
+
+```js
+const importedValueFromModuleA = require('path/to/moduleA')
+const importedValueFromModuleB = require('path/to/moduleB')
+
+// do something with exportedValueFromModuleA/exportedValueFromModuleB
+
+module.exports = exportedValue
+```
+
+You might recognise this from Node!
+
+The CommonJS format was authored by early Node committers and so it was built into Node itself ([Docs](https://nodejs.org/docs/latest/api/modules.html)).
+
+---
+
+`require()` calls are valid anywhere within the module
+
+<Divider />
+
+Exporting relies on simple assignment
+- You can do some slightly weird things like exporting a randomised value
+- This means that imports/exports can only be determined at runtime
+
+---
+
+## ES Modules (ESM)
+
+[Spec](https://tc39.es/ecma262/#sec-modules)
+
+---
+
+```js
+import importedValueFromModuleA from 'path/to/moduleA'
+import importedValueFromModuleB from 'path/to/moduleB'
+
+// do something with exportedValueFromModuleA/exportedValueFromModuleB
+
+export default exportedValue
+```
+
+---
+
+### Named exports
+
+ESM also introduced the concept of "named exports"
+
+```js
+export foo
+export bar
+```
+
+Which are then imported like this:
+
+```js
+import { foo, bar } from './foo'
+```
+
+---
+
+- ESM is fundamentally different to AMD/CJS: imports/exports are statically determined
+
+- This is useful since it improves guarantees around "tree-shaking"/dead code removal
+
+---
+
+## Using ESM today
+
+---
+
+Thanks to the magic of webpack, we can start using ESM in the frontend today
+
+- Well sort of... webpack is actually compiling ESM syntax away to something like CJS
+
+- We still can take advantages of the static nature of imports to improve tree-shaking
+
+---
+
+In Node the answer is much more complicated
+
+- For complex technical reasons, Node's algorithm can't just switch on support for ESM by default
+
+- There are subtle differences in how JS parses ESM vs CJS. So Node either:
+  - Has to parse each file twice
+  - Read some metadata declaring a file as using ESM or CJS
+
+- Most of this is now resolved in latest versions of Node, but there are some [gotchas](https://2ality.com/2019/04/nodejs-esm-impl.html)
+
+- 99% of packages are written in CJS, so we are stuck with it for a while
+
+---
+
+## Questions?
