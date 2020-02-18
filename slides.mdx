@@ -5,8 +5,6 @@ export const theme = {
   ...highlight
 }
 
-import Divider from './divider'
-
 # AMD? CJS? ESM?
 ## Module Systems in JavaScript
 
@@ -16,23 +14,32 @@ import Divider from './divider'
 
 A system where you can import into the current "module" exported code from another "module"
 
-- Often, this "module" is refers to a file, but not necessarily always
-- The scope from context A does not affect the scope from context B
-- The context could be third-party code, but also is first party code
-- So normal in other languages that you might not have considered it a "feature"
+- Often, a "module" is refers to a file, but not necessarily always
+
+- The scope from module A does not affect the scope from module B
+
+- The module could be third-party code, but the majority of usage is first party code
+
+- The concept is so normal in other languages that you might not have considered it a "feature"
 
 ---
 
 ## In the beginning
 
+---
+
 - JavaScript was intended as a scripting language to add interactivity to web pages
+
 - It was not intended to have complex dependencies that our applications have
+
 - Because of this it didn't have any module system for a long time
   - Something that is taken for granted in other languages
 
 ---
 
 ## People started inventing their own
+
+---
 
 The simplest thing to do is to wrap everything in an "immediately invoked function expression" (IIFE)
 
@@ -45,13 +52,18 @@ The simplest thing to do is to wrap everything in an "immediately invoked functi
 Works ok, but...
 
 - Difficult to reference code from another module/file
-- No interoperability
+
+- No interoperability across custom systems
 
 ---
 
-There were several competing implementations of a generic module system for JS
+### Generic module systems
 
-We'll look at a couple of the most widely adopted ones
+So, people started to consolidate on some generic module systems.
+
+- There were several competing implementations
+
+- We'll look at a couple of the most widely adopted ones
 
 ---
 
@@ -62,18 +74,18 @@ We'll look at a couple of the most widely adopted ones
 ---
 
 ```js
-define(
-  ['path/to/moduleA', 'path/to/moduleB'],
-  function(importedValueFromModuleA, importValueFromModuleB) {
-    // do something with importedValueFromModuleA/importedValueFromModuleB
-    return exportedValue
-  }
-)
+define(['path/to/moduleA', 'path/to/moduleB'], function(valueFromModuleA, valueFromModuleB) {
+  // do something with valueFromModuleA/valueFromModuleB
+  return exportedValue
+})
 ```
 
-You might recognise this from the frontend!
-
 ---
+
+- You might recognise this from the frontend!
+
+- We used a tool called RequireJS to build the frontend that popularised the AMD format
+  - We have now migrated to webpack, which can parse the AMD format code
 
 - Modules can be asynchronously loaded
   - This is only useful for browsers, so it is not supported by CJS/Node
@@ -89,27 +101,26 @@ You might recognise this from the frontend!
 ---
 
 ```js
-const importedValueFromModuleA = require('path/to/moduleA')
-const importedValueFromModuleB = require('path/to/moduleB')
+const valueFromModuleA = require('path/to/moduleA')
+const valueFromModuleB = require('path/to/moduleB')
 
-// do something with exportedValueFromModuleA/exportedValueFromModuleB
+// do something with valueFromModuleA/valueFromModuleB
 
 module.exports = exportedValue
 ```
 
-You might recognise this from Node!
-
-The CommonJS format was authored by early Node committers and so it was built into Node itself ([Docs](https://nodejs.org/docs/latest/api/modules.html)).
-
 ---
 
-`require()` calls are valid anywhere within the module
+- You might recognise this from the backend!
 
-<Divider />
+- The CommonJS format was authored by early Node committers and so it was built into Node itself ([Docs](https://nodejs.org/docs/latest/api/modules.html)).
 
-Exporting relies on simple assignment
-- You can do some slightly weird things like exporting a randomised value
-- This means that imports/exports can only be determined at runtime
+- `require()` calls are valid anywhere within the module
+  - This means you can set up circular dependencies
+
+- Exporting relies on assignment
+  - You can do some slightly weird things like exporting a randomised value
+  - This means that imports/exports can only be determined at runtime
 
 ---
 
@@ -120,10 +131,10 @@ Exporting relies on simple assignment
 ---
 
 ```js
-import importedValueFromModuleA from 'path/to/moduleA'
-import importedValueFromModuleB from 'path/to/moduleB'
+import valueFromModuleA from 'path/to/moduleA'
+import valueFromModuleB from 'path/to/moduleB'
 
-// do something with exportedValueFromModuleA/exportedValueFromModuleB
+// do something with valueFromModuleA/valueFromModuleB
 
 export default exportedValue
 ```
@@ -135,8 +146,8 @@ export default exportedValue
 ESM also introduced the concept of "named exports"
 
 ```js
-export foo
-export bar
+export const foo = 'hello'
+export function bar() { ... }
 ```
 
 Which are then imported like this:
@@ -145,21 +156,31 @@ Which are then imported like this:
 import { foo, bar } from './foo'
 ```
 
+There are actually a more ways of [importing](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#Syntax) and [exporting](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export#Syntax).
+
 ---
 
-- ESM is fundamentally different to AMD/CJS: imports/exports are statically determined
+## ESM is fundamentally different to AMD/CJS
 
-- This is useful since it improves guarantees around "tree-shaking"/dead code removal
+---
 
-- Since it is now built into the language, I think it is the future for all JS code
+- Imports/exports are statically determined
+  - This is useful since it improves guarantees around "tree-shaking"/dead code removal
+
+- The designers had the benefit of being able to change the language itself
+  - Although, unfortuntely they didn't really consider usage within Node
 
 ---
 
 ## Using ESM today
 
+Now it is built into the language, I think it is the future for all JS code
+
 ---
 
-Thanks to the magic of webpack, we can start using ESM in the frontend today
+### In the frontend
+
+Thanks to webpack, we can start using ESM in the frontend today
 
 - Well sort of... webpack is actually compiling ESM syntax away to something like CJS
 
@@ -167,12 +188,14 @@ Thanks to the magic of webpack, we can start using ESM in the frontend today
 
 ---
 
-In Node the answer is much more complicated
+### In the backend
 
-- For complex technical reasons, Node's algorithm can't just switch on support for ESM by default
+The answer is much more complicated in Node
+
+- For complex technical reasons, support for ESM can't be easily switched on in Node's algorithm
 
 - There are subtle differences in how JS parses ESM vs CJS. So Node either:
-  - Has to parse each file twice
+  - Has to parse each file twice (which has performance implications), or
   - Read some metadata declaring a file as using ESM or CJS
 
 - Most of this is now resolved in latest versions of Node, but there are some [gotchas](https://2ality.com/2019/04/nodejs-esm-impl.html)
